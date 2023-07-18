@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agora x ActiveFence</title>
+</head>
+
+<body>
+  <div style="display: flex;flex-direction: column;justify-content: center; align-self: center; justify-self: center; align-items: center; margin: auto;">
+    <h1>Agora x ActiveFence</h1>
+
+    <p>App id : <input type="text" id="app-id" value=""></p>
+    <p>Channel : <input type="text" id="channel" value="test"></p>
+    <p>Token : <input type="text" id="token" placeholder="(optional)" value=""></p>
+    <button id="start">Start</button>
+    <button id="stop" disabled>Stop</button>
+
+    <h4>My Feed :</h4>
+    <div id="me"></div>
+
+    <h4>Remote Feeds :</h4>
+    <div id="remote-container">
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </div>
+</body>
+
+</html>
