@@ -36,8 +36,8 @@ document.getElementById("start")!.onclick = async function () {
 
   localVideoTrack.play("me");
 
-  client.on('content-inspect-connection-state-change', (prev, cur) => {
-    console.log('!AF', 'prev', prev, 'cur', cur)
+  client.on('image-moderation-connection-state-change', (cur, prev) => {
+    console.log('AF status:', 'prev', prev, 'cur', cur)
   });
 
   client.on("user-published", async (user, mediaType) => {
@@ -59,13 +59,9 @@ document.getElementById("start")!.onclick = async function () {
 
   const _uid = await client.join(appId, channelId, token, null);
   console.log("uid", _uid);
-  
   await client.publish([localAudioTrack, localVideoTrack]);
 
-  client.enableContentInspect({
-    interval: 2,
-    inspectType: ["moderation"],
-  }).then(e=>console.log('!AF on', e));
+  client.setImageModeration(true, {interval: 1000}).then(e=>console.log('!AF on', e));
   
   // @ts-expect-error modify window
   window["AgoraRTC"] = AgoraRTC;window["client"] = client;window["localAudioTrack"] = localAudioTrack;window["localVideoTrack"] = localVideoTrack;
