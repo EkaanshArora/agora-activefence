@@ -1,93 +1,105 @@
 import AgoraRTC, {
-  IAgoraRTCClient,
-  ILocalVideoTrack,
-  IMicrophoneAudioTrack,
-  UID,
+	ConnectionDisconnectedReason,
+	IAgoraRTCClient,
+	ILocalVideoTrack,
+	IMicrophoneAudioTrack,
+	UID,
 } from "agora-rtc-sdk-ng";
-import './style.css';
+import "./style.css";
 
 let remoteContainer = document.getElementById("remote-container")!;
 
 function addVideoContainer(uid: UID) {
-  let streamDiv = document.createElement("div");
-  streamDiv.id = String(uid);
-  // streamDiv.style.transform = "rotateY(180deg)";
-  remoteContainer.appendChild(streamDiv);
+	let streamDiv = document.createElement("div");
+	streamDiv.id = String(uid);
+	// streamDiv.style.transform = "rotateY(180deg)";
+	remoteContainer.appendChild(streamDiv);
 }
 
 function removeVideoContainer(uid: UID) {
-  let remDiv = document.getElementById(String(uid));
-  remDiv && remDiv.parentNode?.removeChild(remDiv);
+	let remDiv = document.getElementById(String(uid));
+	remDiv && remDiv.parentNode?.removeChild(remDiv);
 }
 
 document.getElementById("start")!.onclick = async function () {
-  const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-  
-  let appId = (document.getElementById("app-id") as HTMLInputElement).value;
-  let channelId = (document.getElementById("channel") as HTMLInputElement)
-    .value;
-  let token =
-    (document.getElementById("token") as HTMLInputElement).value || null;
+	const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
 
-  const [localAudioTrack, localVideoTrack] =
-    await AgoraRTC.createMicrophoneAndCameraTracks();
+	let appId = (document.getElementById("app-id") as HTMLInputElement).value;
+	let channelId = (document.getElementById("channel") as HTMLInputElement)
+		.value;
+	let token =
+		(document.getElementById("token") as HTMLInputElement).value || null;
 
-  initStop(client, localAudioTrack, localVideoTrack);
+	const [localAudioTrack, localVideoTrack] =
+		await AgoraRTC.createMicrophoneAndCameraTracks();
 
-  localVideoTrack.play("me");
+	initStop(client, localAudioTrack, localVideoTrack);
 
-  client.on('image-moderation-connection-state-change', (cur, prev) => {
-    console.log('AF status:', 'prev', prev, 'cur', cur)
-  });
+	localVideoTrack.play("me");
 
-  client.on("user-published", async (user, mediaType) => {
-    await client.subscribe(user, mediaType);
-    if (mediaType === "video") {
-      addVideoContainer(String(user.uid));
-      user.videoTrack && user.videoTrack.play(String(user.uid));
-    }
-    if (mediaType === "audio") {
-      user.audioTrack && user.audioTrack.play();
-    }
-  });
+	client.on("connection-state-change", (cur, prev, reason) => {
+		console.log("connection:", "prev", prev, "cur", cur, "reason:", reason);
+		if (reason === ConnectionDisconnectedReason.UID_BANNED) {
+			if (confirm("You are kicked from this channel, reload?")) {
+				window.location.reload();
+			}
+		}
+	});
 
-  client.on("user-unpublished", async (user, mediaType) => {
-    if (mediaType === "video") {
-      removeVideoContainer(user.uid);
-    }
-  });
+	client.on("image-moderation-connection-state-change", (cur, prev) => {
+		console.log("AF status:", "prev", prev, "cur", cur);
+	});
 
-  const _uid = await client.join(appId, channelId, token, null);
-  console.log("uid", _uid);
-  await client.publish([localAudioTrack, localVideoTrack]);
+	client.on("user-published", async (user, mediaType) => {
+		await client.subscribe(user, mediaType);
+		if (mediaType === "video") {
+			addVideoContainer(String(user.uid));
+			user.videoTrack && user.videoTrack.play(String(user.uid));
+		}
+		if (mediaType === "audio") {
+			user.audioTrack && user.audioTrack.play();
+		}
+	});
 
-  client.setImageModeration(true, {interval: 1000}).then(e=>console.log('!AF on', e));
-  
-  // @ts-expect-error modify window
-  window["AgoraRTC"] = AgoraRTC;window["client"] = client;window["localAudioTrack"] = localAudioTrack;window["localVideoTrack"] = localVideoTrack;
+	client.on("user-unpublished", async (user, mediaType) => {
+		if (mediaType === "video") {
+			removeVideoContainer(user.uid);
+		}
+	});
+
+	const _uid = await client.join(appId, channelId, token, null);
+	console.log("uid", _uid);
+	await client.publish([localAudioTrack, localVideoTrack]);
+
+	client
+		.setImageModeration(true, { interval: 1000 })
+		.then((e) => console.log("!AF on", e));
+
+	// @ts-expect-error modify window
+	window["AgoraRTC"] = AgoraRTC;	window["client"] = client;	window["localAudioTrack"] = localAudioTrack;	window["localVideoTrack"] = localVideoTrack;
 };
 
 function initStop(
-  client: IAgoraRTCClient,
-  localAudioTrack: IMicrophoneAudioTrack,
-  localVideoTrack: ILocalVideoTrack
+	client: IAgoraRTCClient,
+	localAudioTrack: IMicrophoneAudioTrack,
+	localVideoTrack: ILocalVideoTrack
 ) {
-  const stopBtn = document.getElementById("stop") as HTMLInputElement;
-  stopBtn.disabled = false;
-  stopBtn.onclick = null;
-  stopBtn.onclick = function () {
-    client.unpublish();
-    localVideoTrack.stop();
-    localVideoTrack.close();
-    localAudioTrack.stop();
-    localAudioTrack.close();
-    client.remoteUsers.forEach((user) => {
-      if (user.hasVideo) {
-        removeVideoContainer(user.uid);
-      }
-      client.unsubscribe(user);
-    });
-    client.removeAllListeners();
-    stopBtn.disabled = true;
-  };
+	const stopBtn = document.getElementById("stop") as HTMLInputElement;
+	stopBtn.disabled = false;
+	stopBtn.onclick = null;
+	stopBtn.onclick = function () {
+		client.unpublish();
+		localVideoTrack.stop();
+		localVideoTrack.close();
+		localAudioTrack.stop();
+		localAudioTrack.close();
+		client.remoteUsers.forEach((user) => {
+			if (user.hasVideo) {
+				removeVideoContainer(user.uid);
+			}
+			client.unsubscribe(user);
+		});
+		client.removeAllListeners();
+		stopBtn.disabled = true;
+	};
 }
