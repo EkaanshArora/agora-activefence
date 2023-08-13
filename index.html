@@ -9,9 +9,24 @@
 </head>
 
 <body>
-  <div style="display: flex;flex-direction: column;justify-content: center; align-self: center; justify-self: center; align-items: center; margin: auto;">
+  <div
+    style="display: flex;flex-direction: column;justify-content: center; align-self: center; justify-self: center; align-items: center; margin: auto;">
     <h1>Agora x ActiveFence</h1>
-
+    <div style="margin-top: 0; margin-bottom: 8px; display: flex; text-align: center; flex-direction: column;">
+      <h2 style="margin-top: -0.6rem; font-weight: 400;">
+        This project showcases the content inspect moderation features available with Agora and their partner
+        ActiveFence.
+      </h2>
+      <div style="text-align: left; margin: auto;">
+        <b>To see the demo in action we recommend setting up a Kicking Server:</b>
+        <br />
+        1. Head to <a href="https://github.com/AgoraIO-Community/agora-activefence-kicker">agora-activefence-kicker</a> and
+        use the one-click deployment for the server.
+        <br />
+        2. Add the deployment link + /kick/ to the webhook URL for the desired event in the ActiveFence dashboard.
+        <br />
+      </div>
+    </div>
     <p>App id : <input type="text" id="app-id" value=""></p>
     <p>Channel : <input type="text" id="channel" value="test"></p>
     <p>Token : <input type="text" id="token" placeholder="(optional)" value=""></p>
